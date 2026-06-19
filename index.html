@@ -87,7 +87,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
   var SUPA="https://qpeiihihoveciqnhzcgh.supabase.co";
   var ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWlpaGlob3ZlY2lxbmh6Y2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MzkxMzksImV4cCI6MjA4NDQxNTEzOX0.SIm5Q06k1xR-vFMrxW5UuLQXYluKGXmZ_Aqjqz-_GRM";
   var SALE_PRICE=9000, CREDIT_AMOUNT=288;
-  var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=5;
+  var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=6;
   var H={apikey:ANON,Authorization:'Bearer '+ANON};
   function gbp(n){return '£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function localISO(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
@@ -98,11 +98,12 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
   function lastDay(y,m){return new Date(y,m+1,0);}
   function generateCredits(){
     var out=[];var now=new Date();var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    var y=CREDIT_FIRST_Y,m=CREDIT_FIRST_M;
-    while(y<today.getFullYear()||(y===today.getFullYear()&&m<=today.getMonth())){
+    var firstIdx=CREDIT_FIRST_Y*12+CREDIT_FIRST_M;
+    var endIdx=Math.max(firstIdx, today.getFullYear()*12+today.getMonth());
+    for(var idx=firstIdx; idx<=endIdx; idx++){
+      var y=Math.floor(idx/12), m=idx%12;
       var d=lastDay(y,m);var applied=today.getTime()>=d.getTime();
       out.push({date:localISO(d),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
-      m++;if(m>11){m=0;y++;}
     }
     return out;
   }
