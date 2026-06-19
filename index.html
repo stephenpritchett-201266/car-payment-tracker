@@ -90,7 +90,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
   var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=5;
   var H={apikey:ANON,Authorization:'Bearer '+ANON};
   function gbp(n){return '£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
-  function fdate(d){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+  function localISO(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+  function fdate(s){var d;if(typeof s==='string'&&/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.split('-');d=new Date(+p[0],+p[1]-1,+p[2].slice(0,2));}else d=new Date(s);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
   function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function token(){return localStorage.getItem('carsale_owner')||'';}
   function isOwner(){return !!token();}
@@ -100,7 +101,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     var y=CREDIT_FIRST_Y,m=CREDIT_FIRST_M;
     while(y<today.getFullYear()||(y===today.getFullYear()&&m<=today.getMonth())){
       var d=lastDay(y,m);var applied=today.getTime()>=d.getTime();
-      out.push({date:d.toISOString().slice(0,10),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
+      out.push({date:localISO(d),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
       m++;if(m>11){m=0;y++;}
     }
     return out;
@@ -161,7 +162,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     var el=document.getElementById('adminAdd');
     if(!isOwner()){el.innerHTML='';return;}
     el.innerHTML='<div style="background:#faf7ee;border:1px solid #ece2c4;border-radius:10px;padding:12px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#7a5f12;margin-bottom:6px">OWNER · log a payment you received</div><div class="row2"><div><input type="date" id="a_date"></div><div><input type="number" id="a_amt" placeholder="Amount £" step="0.01" min="1"></div></div><div class="row2" style="margin-top:8px"><div><select id="a_method"><option>Bank transfer</option><option>Cash</option><option>Card</option><option>Other</option></select></div><div><input type="text" id="a_ref" placeholder="Reference (optional)"></div></div><button class="primary" id="a_add" style="margin-top:10px">Add as confirmed</button></div>';
-    document.getElementById('a_date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('a_date').value=localISO(new Date());
     document.getElementById('a_add').onclick=function(){
       var d=document.getElementById('a_date').value,amt=parseFloat(document.getElementById('a_amt').value),meth=document.getElementById('a_method').value,ref=document.getElementById('a_ref').value;
       if(!d||!(amt>0)){alert('Enter a date and amount.');return;}
@@ -178,7 +179,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     var btn=this.querySelector('button');btn.disabled=true;
     api('car_sale_payments',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({paid_on:d,amount:amt,method:meth,reference:ref||null,status:'pending',submitted_by:'buyer'})}).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||('Error '+r.status));});msg.className='msg ok';msg.textContent='Sent to Steve ✓ — your payment is now Pending and will count once he confirms receipt.';document.getElementById('f_amount').value='';document.getElementById('f_ref').value='';load();}).catch(function(e){msg.className='msg err';msg.textContent='Could not send: '+e.message;}).finally(function(){btn.disabled=false;});
   };
-  document.getElementById('f_date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f_date').value=localISO(new Date());
   load();
 })();
 </script>
