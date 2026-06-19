@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jaguar I-Pace — Payment Tracker</title>
+<style>
+:root{--green:#0b3d2e;--green2:#13543f;--gold:#c9a24b;--bg:#f4f6f5;--card:#fff;--ink:#1c2421;--muted:#6b7771;--line:#e6eae8;--ok:#1f8a4c;--okbg:#e7f5ec;--pend:#b9791a;--pendbg:#fdf3e2;--rej:#9aa3a0;--rejbg:#eef1f0;--credbg:#e9f0fb;--cred:#2a5db0}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;padding:20px 16px;position:relative}
+header h1{margin:0;font-size:20px;letter-spacing:.3px}
+header p{margin:2px 0 0;color:#cfe3da;font-size:13px}
+.lock{position:absolute;top:16px;right:14px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 11px;border-radius:20px;font-size:12px;cursor:pointer}
+main{max-width:680px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+h2{font-size:15px;margin:0 0 12px;color:var(--green)}
+.bal{font-size:34px;font-weight:700;color:var(--green);letter-spacing:-.5px}
+.bal small{font-size:13px;font-weight:500;color:var(--muted);display:block;letter-spacing:0}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:12px 0 10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e0c074)}
+.stats{display:flex;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--muted)}
+.stats b{color:var(--ink);font-weight:600}
+.note{font-size:13px;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--pendbg);color:#7a5210}
+.note.cred{background:var(--credbg);color:#234e95}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff}
+.row2{display:flex;gap:10px}
+.row2>div{flex:1}
+button.primary{margin-top:14px;width:100%;background:var(--green);color:#fff;border:0;padding:13px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+button.primary:active{opacity:.9}
+.msg{margin-top:10px;font-size:13px;padding:10px 12px;border-radius:10px;display:none}
+.msg.ok{display:block;background:var(--okbg);color:#13633a}
+.msg.err{display:block;background:#fdeaea;color:#a12626}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.amt{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.sub{color:var(--muted);font-size:11px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}
+.b-pend{background:var(--pendbg);color:var(--pend)}
+.b-rej{background:var(--rejbg);color:var(--rej)}
+.b-cred{background:var(--credbg);color:var(--cred)}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.acts button{font-size:11px;padding:4px 9px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600}
+.acts .yes{background:var(--ok);color:#fff;border-color:var(--ok)}
+.acts .no{background:#fff;color:var(--rej)}
+.owner-on{background:var(--gold)!important;color:#3a2e08!important;border-color:var(--gold)!important}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
+.empty{color:var(--muted);font-size:13px;padding:8px 4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Jaguar I-Pace</h1>
+  <p>Sale payment tracker</p>
+  <button class="lock" id="ownerBtn">Owner</button>
+</header>
+<main>
+  <section class="card" id="summary"></section>
+  <section class="card">
+    <h2>Log a payment</h2>
+    <form id="payForm" autocomplete="off">
+      <div class="row2">
+        <div><label>Date paid</label><input type="date" id="f_date" required></div>
+        <div><label>Amount (£)</label><input type="number" id="f_amount" min="1" step="0.01" placeholder="0.00" required></div>
+      </div>
+      <label>Method</label>
+      <select id="f_method"><option>Bank transfer</option><option>Cash</option><option>Card</option><option>Other</option></select>
+      <label>Reference / note (optional)</label>
+      <input type="text" id="f_ref" maxlength="120" placeholder="e.g. transfer reference or your name">
+      <button class="primary" type="submit">Send to Steve</button>
+      <div class="msg" id="payMsg"></div>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Payment history</h2>
+    <div id="adminAdd"></div>
+    <div id="ledger"><div class="empty">Loading…</div></div>
+  </section>
+  <footer>Updates are shared live. The £288 cleaning credit applies automatically at each month-end.</footer>
+</main>
+<script>
+(function(){
+  var SUPA="https://qpeiihihoveciqnhzcgh.supabase.co";
+  var ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWlpaGlob3ZlY2lxbmh6Y2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MzkxMzksImV4cCI6MjA4NDQxNTEzOX0.SIm5Q06k1xR-vFMrxW5UuLQXYluKGXmZ_Aqjqz-_GRM";
+  var SALE_PRICE=9000, CREDIT_AMOUNT=288;
+  var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=5;
+  var H={apikey:ANON,Authorization:'Bearer '+ANON};
+  function gbp(n){return '£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function fdate(d){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+  function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function token(){return localStorage.getItem('carsale_owner')||'';}
+  function isOwner(){return !!token();}
+  function lastDay(y,m){return new Date(y,m+1,0);}
+  function generateCredits(){
+    var out=[];var now=new Date();var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var y=CREDIT_FIRST_Y,m=CREDIT_FIRST_M;
+    while(y<today.getFullYear()||(y===today.getFullYear()&&m<=today.getMonth())){
+      var d=lastDay(y,m);var applied=today.getTime()>=d.getTime();
+      out.push({date:d.toISOString().slice(0,10),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
+      m++;if(m>11){m=0;y++;}
+    }
+    return out;
+  }
+  function badge(st){var m={pending:['Pending','b-pend'],confirmed:['Confirmed','b-ok'],rejected:['Rejected','b-rej'],applied:['Applied','b-ok'],creditpending:['Applies month-end','b-cred']};var x=m[st]||['',''];return '<span class="badge '+x[1]+'">'+x[0]+'</span>';}
+  function api(path,opts){opts=opts||{};opts.headers=Object.assign({},H,opts.headers||{});return fetch(SUPA+'/rest/v1/'+path,opts);}
+  function rpc(fn,body){return fetch(SUPA+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({},H,{'Content-Type':'application/json'}),body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||('Error '+r.status));});return r.json().catch(function(){return null;});});}
+  function load(){api('car_sale_payments?select=*&order=paid_on.asc,created_at.asc').then(function(r){return r.json();}).then(function(rows){render(rows||[]);}).catch(function(e){document.getElementById('ledger').innerHTML='<div class="msg err" style="display:block">Could not load data. '+esc(e.message)+'</div>';});}
+  function render(payments){
+    var items=[];
+    payments.forEach(function(p){items.push({date:p.paid_on,created:p.created_at,kind:'payment',id:p.id,amount:Number(p.amount),method:p.method,reference:p.reference,status:p.status,by:p.submitted_by});});
+    generateCredits().forEach(function(c){items.push(c);});
+    items.sort(function(a,b){if(a.date!==b.date)return a.date<b.date?-1:1;var ak=a.kind==='payment'?0:1,bk=b.kind==='payment'?0:1;if(ak!==bk)return ak-bk;return (a.created||'')<(b.created||'')?-1:1;});
+    var confirmedPaid=0,pendingPay=0,pendingPayN=0,creditsAppliedRaw=0;
+    payments.forEach(function(p){if(p.status==='confirmed')confirmedPaid+=Number(p.amount);else if(p.status==='pending'){pendingPay+=Number(p.amount);pendingPayN++;}});
+    items.forEach(function(it){if(it.kind==='credit'&&it.status==='applied')creditsAppliedRaw+=it.amount;});
+    var creditsApplied=Math.min(creditsAppliedRaw,Math.max(0,SALE_PRICE-confirmedPaid));
+    var balance=Math.max(0,SALE_PRICE-confirmedPaid-creditsApplied);
+    var paid=SALE_PRICE-balance;var pct=Math.max(0,Math.min(100,paid/SALE_PRICE*100));
+    var pendCredit=null;items.forEach(function(it){if(it.kind==='credit'&&it.status==='creditpending'&&!pendCredit)pendCredit=it;});
+    var running=SALE_PRICE;items.forEach(function(it){var active=(it.kind==='payment'&&it.status==='confirmed')||(it.kind==='credit'&&it.status==='applied');if(active){running=Math.max(0,running-it.amount);it.balAfter=running;}else it.balAfter=null;});
+    var s='';
+    s+='<div class="bal">'+gbp(balance)+'<small>still owing of '+gbp(SALE_PRICE)+'</small></div>';
+    s+='<div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div>';
+    s+='<div class="stats"><span>Paid so far <b>'+gbp(paid)+'</b></span><span>Confirmed payments <b>'+gbp(confirmedPaid)+'</b></span><span>Cleaning credits <b>'+gbp(creditsApplied)+'</b></span></div>';
+    if(pendingPay>0)s+='<div class="note">⏳ '+gbp(pendingPay)+' awaiting confirmation ('+pendingPayN+(pendingPayN===1?' payment':' payments')+'). '+(isOwner()?'Confirm it below to count it.':'Steve will confirm receipt.')+'</div>';
+    if(pendCredit&&balance>0)s+='<div class="note cred">🧽 Next cleaning credit '+gbp(CREDIT_AMOUNT)+' applies automatically on '+fdate(pendCredit.date)+'.</div>';
+    document.getElementById('summary').innerHTML=s;
+    var owner=isOwner();
+    var t='<table><thead><tr><th>Date</th><th>Details</th><th style="text-align:right">Amount</th><th>Status</th>'+(owner?'<th></th>':'')+'</tr></thead><tbody>';
+    if(items.length===0)t+='<tr><td colspan="5" class="empty">No payments yet.</td></tr>';
+    items.slice().reverse().forEach(function(it){
+      var desc;
+      if(it.kind==='credit')desc='Cleaning credit';
+      else if(it.method==='Down payment')desc='Down payment';
+      else desc=(it.by==='steve'?'Payment (you logged)':'Payment');
+      var meta=[];if(it.kind==='payment')meta.push(esc(it.method));if(it.reference)meta.push(esc(it.reference));
+      var balCell=(it.balAfter!=null)?('<div class="sub">bal '+gbp(it.balAfter)+'</div>'):'';
+      t+='<tr><td>'+fdate(it.date)+'</td><td>'+desc+(meta.length?'<div class="sub">'+meta.join(' · ')+'</div>':'')+'</td><td style="text-align:right" class="amt">'+gbp(it.amount)+balCell+'</td><td>'+badge(it.status)+'</td>';
+      if(owner){var a='<div class="acts">';if(it.kind==='payment'){if(it.status==='pending'){a+='<button class="yes" data-act="confirm" data-id="'+it.id+'">Confirm</button><button class="no" data-act="reject" data-id="'+it.id+'">Reject</button>';}else{a+='<button data-act="reopen" data-id="'+it.id+'">Undo</button>';}a+='<button class="no" data-act="delete" data-id="'+it.id+'">Delete</button>';}a+='</div>';t+='<td>'+(it.kind==='payment'?a:'')+'</td>';}
+      t+='</tr>';
+    });
+    t+='</tbody></table>';
+    document.getElementById('ledger').innerHTML=t;
+    if(owner)bindActions();
+    renderAdminAdd();renderOwnerBtn();
+  }
+  function bindActions(){
+    document.querySelectorAll('#ledger .acts button').forEach(function(b){b.onclick=function(){
+      var act=b.getAttribute('data-act'),id=b.getAttribute('data-id');
+      if(act==='delete'&&!confirm('Delete this entry permanently?'))return;
+      if(act==='reject'&&!confirm('Mark this as rejected (not received)?'))return;
+      b.disabled=true;
+      rpc(act+'_car_payment',{p_id:id,p_token:token()}).then(function(){load();}).catch(function(e){alert(e.message.indexOf('Not authorised')>=0?'Your owner key was not accepted — re-enter it.':e.message);b.disabled=false;});
+    };});
+  }
+  function renderAdminAdd(){
+    var el=document.getElementById('adminAdd');
+    if(!isOwner()){el.innerHTML='';return;}
+    el.innerHTML='<div style="background:#faf7ee;border:1px solid #ece2c4;border-radius:10px;padding:12px;margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#7a5f12;margin-bottom:6px">OWNER · log a payment you received</div><div class="row2"><div><input type="date" id="a_date"></div><div><input type="number" id="a_amt" placeholder="Amount £" step="0.01" min="1"></div></div><div class="row2" style="margin-top:8px"><div><select id="a_method"><option>Bank transfer</option><option>Cash</option><option>Card</option><option>Other</option></select></div><div><input type="text" id="a_ref" placeholder="Reference (optional)"></div></div><button class="primary" id="a_add" style="margin-top:10px">Add as confirmed</button></div>';
+    document.getElementById('a_date').value=new Date().toISOString().slice(0,10);
+    document.getElementById('a_add').onclick=function(){
+      var d=document.getElementById('a_date').value,amt=parseFloat(document.getElementById('a_amt').value),meth=document.getElementById('a_method').value,ref=document.getElementById('a_ref').value;
+      if(!d||!(amt>0)){alert('Enter a date and amount.');return;}
+      var self=this;self.disabled=true;
+      rpc('admin_add_car_payment',{p_token:token(),p_paid_on:d,p_amount:amt,p_method:meth,p_reference:ref}).then(function(){load();}).catch(function(e){alert(e.message.indexOf('Not authorised')>=0?'Owner key not accepted.':e.message);self.disabled=false;});
+    };
+  }
+  function renderOwnerBtn(){var b=document.getElementById('ownerBtn');if(isOwner()){b.textContent='Owner ✓';b.classList.add('owner-on');}else{b.textContent='Owner';b.classList.remove('owner-on');}}
+  document.getElementById('ownerBtn').onclick=function(){if(isOwner()){if(confirm('Lock owner mode on this device?')){localStorage.removeItem('carsale_owner');load();}}else{var k=prompt('Enter your owner key');if(k){localStorage.setItem('carsale_owner',k.trim());load();}}};
+  document.getElementById('payForm').onsubmit=function(e){
+    e.preventDefault();var msg=document.getElementById('payMsg');msg.className='msg';
+    var d=document.getElementById('f_date').value,amt=parseFloat(document.getElementById('f_amount').value),meth=document.getElementById('f_method').value,ref=document.getElementById('f_ref').value;
+    if(!d||!(amt>0)){msg.className='msg err';msg.textContent='Please enter a date and an amount.';return;}
+    var btn=this.querySelector('button');btn.disabled=true;
+    api('car_sale_payments',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({paid_on:d,amount:amt,method:meth,reference:ref||null,status:'pending',submitted_by:'buyer'})}).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||('Error '+r.status));});msg.className='msg ok';msg.textContent='Sent to Steve ✓ — your payment is now Pending and will count once he confirms receipt.';document.getElementById('f_amount').value='';document.getElementById('f_ref').value='';load();}).catch(function(e){msg.className='msg err';msg.textContent='Could not send: '+e.message;}).finally(function(){btn.disabled=false;});
+  };
+  document.getElementById('f_date').value=new Date().toISOString().slice(0,10);
+  load();
+})();
+</script>
+</body>
+</html>
