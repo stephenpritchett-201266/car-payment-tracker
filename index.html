@@ -80,14 +80,14 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     <div id="adminAdd"></div>
     <div id="ledger"><div class="empty">Loading…</div></div>
   </section>
-  <footer>Updates are shared live. The £288 cleaning credit applies automatically at each month-end.</footer>
+  <footer>Updates are shared live. The £288 cleaning credit applies automatically every 4 weeks (on a Friday).</footer>
 </main>
 <script>
 (function(){
   var SUPA="https://qpeiihihoveciqnhzcgh.supabase.co";
   var ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWlpaGlob3ZlY2lxbmh6Y2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MzkxMzksImV4cCI6MjA4NDQxNTEzOX0.SIm5Q06k1xR-vFMrxW5UuLQXYluKGXmZ_Aqjqz-_GRM";
   var SALE_PRICE=9000, CREDIT_AMOUNT=288;
-  var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=6;
+  var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=6, CREDIT_FIRST_D=24;
   var H={apikey:ANON,Authorization:'Bearer '+ANON};
   function gbp(n){return '£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});}
   function localISO(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
@@ -98,16 +98,16 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
   function lastDay(y,m){return new Date(y,m+1,0);}
   function generateCredits(){
     var out=[];var now=new Date();var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-    var firstIdx=CREDIT_FIRST_Y*12+CREDIT_FIRST_M;
-    var endIdx=Math.max(firstIdx, today.getFullYear()*12+today.getMonth());
-    for(var idx=firstIdx; idx<=endIdx; idx++){
-      var y=Math.floor(idx/12), m=idx%12;
-      var d=lastDay(y,m);var applied=today.getTime()>=d.getTime();
+    var d=new Date(CREDIT_FIRST_Y,CREDIT_FIRST_M,CREDIT_FIRST_D);
+    while(true){
+      var applied=today.getTime()>=d.getTime();
       out.push({date:localISO(d),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
+      if(!applied)break;
+      d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+28);
     }
     return out;
   }
-  function badge(st){var m={pending:['Pending','b-pend'],confirmed:['Confirmed','b-ok'],rejected:['Rejected','b-rej'],applied:['Applied','b-ok'],creditpending:['Applies month-end','b-cred']};var x=m[st]||['',''];return '<span class="badge '+x[1]+'">'+x[0]+'</span>';}
+  function badge(st){var m={pending:['Pending','b-pend'],confirmed:['Confirmed','b-ok'],rejected:['Rejected','b-rej'],applied:['Applied','b-ok'],creditpending:['Upcoming','b-cred']};var x=m[st]||['',''];return '<span class="badge '+x[1]+'">'+x[0]+'</span>';}
   function api(path,opts){opts=opts||{};opts.headers=Object.assign({},H,opts.headers||{});return fetch(SUPA+'/rest/v1/'+path,opts);}
   function rpc(fn,body){return fetch(SUPA+'/rest/v1/rpc/'+fn,{method:'POST',headers:Object.assign({},H,{'Content-Type':'application/json'}),body:JSON.stringify(body)}).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||('Error '+r.status));});return r.json().catch(function(){return null;});});}
   function load(){api('car_sale_payments?select=*&order=paid_on.asc,created_at.asc').then(function(r){return r.json();}).then(function(rows){render(rows||[]);}).catch(function(e){document.getElementById('ledger').innerHTML='<div class="msg err" style="display:block">Could not load data. '+esc(e.message)+'</div>';});}
