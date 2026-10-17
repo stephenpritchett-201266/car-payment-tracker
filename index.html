@@ -80,13 +80,15 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     <div id="adminAdd"></div>
     <div id="ledger"><div class="empty">Loading…</div></div>
   </section>
-  <footer>Updates are shared live. The £288 cleaning credit applies automatically every 4 weeks (on a Friday).</footer>
+  <footer>Updates are shared live. The cleaning credit applies automatically every 4 weeks (on a Friday): £288, rising to £320 from 1 Nov 2026.</footer>
 </main>
 <script>
 (function(){
   var SUPA="https://qpeiihihoveciqnhzcgh.supabase.co";
   var ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFwZWlpaGlob3ZlY2lxbmh6Y2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MzkxMzksImV4cCI6MjA4NDQxNTEzOX0.SIm5Q06k1xR-vFMrxW5UuLQXYluKGXmZ_Aqjqz-_GRM";
   var SALE_PRICE=9000, CREDIT_AMOUNT=288;
+  // Credit rises by £32 for every credit dated on/after this date.
+  var CREDIT_AMOUNT_NEW=320, CREDIT_NEW_FROM='2026-11-01';
   // Money lent to the buyer (adds to what they owe). Set amount to 0 to remove.
   var LOAN_AMOUNT=1000, LOAN_DATE='2026-07-12', LOAN_NOTE='Cash lent to buyer';
   var CREDIT_FIRST_Y=2026, CREDIT_FIRST_M=6, CREDIT_FIRST_D=24;
@@ -103,7 +105,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     var d=new Date(CREDIT_FIRST_Y,CREDIT_FIRST_M,CREDIT_FIRST_D);
     while(true){
       var applied=today.getTime()>=d.getTime();
-      out.push({date:localISO(d),created:'',kind:'credit',amount:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
+      var iso=localISO(d);
+      out.push({date:iso,created:'',kind:'credit',amount:iso>=CREDIT_NEW_FROM?CREDIT_AMOUNT_NEW:CREDIT_AMOUNT,method:'Cleaning credit',reference:'',status:applied?'applied':'creditpending',id:null,by:'system'});
       if(!applied)break;
       d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+28);
     }
@@ -134,7 +137,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:8px 0 24px}
     s+='<div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div>';
     s+='<div class="stats"><span>Paid so far <b>'+gbp(paid)+'</b></span><span>Confirmed payments <b>'+gbp(confirmedPaid)+'</b></span><span>Cleaning credits <b>'+gbp(creditsApplied)+'</b></span>'+(loansApplied>0?'<span>Loan to buyer <b>'+gbp(loansApplied)+'</b></span>':'')+'</div>';
     if(pendingPay>0)s+='<div class="note">⏳ '+gbp(pendingPay)+' awaiting confirmation ('+pendingPayN+(pendingPayN===1?' payment':' payments')+'). '+(isOwner()?'Confirm it below to count it.':'Steve will confirm receipt.')+'</div>';
-    if(pendCredit&&balance>0)s+='<div class="note cred">🧽 Next cleaning credit '+gbp(CREDIT_AMOUNT)+' applies automatically on '+fdate(pendCredit.date)+'.</div>';
+    if(pendCredit&&balance>0)s+='<div class="note cred">🧽 Next cleaning credit '+gbp(pendCredit.amount)+' applies automatically on '+fdate(pendCredit.date)+'.</div>';
     document.getElementById('summary').innerHTML=s;
     var owner=isOwner();
     var t='<table><thead><tr><th>Date</th><th>Details</th><th style="text-align:right">Amount</th><th>Status</th>'+(owner?'<th></th>':'')+'</tr></thead><tbody>';
